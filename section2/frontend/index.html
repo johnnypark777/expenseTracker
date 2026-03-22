@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Expense Tracker</title>
+</head>
+<body>
+  <h1>Expense Tracker</h1>
+
+  <section id="filters">
+    <select id="category-filter"><option value="">All Categories</option></select>
+    <label>From: <input type="date" id="start-date" /></label>
+    <label>To:   <input type="date" id="end-date"   /></label>
+  </section>
+
+  <div id="status"></div>
+
+  <div id="layout">
+    <section id="expense-panel">
+      <h2>Expenses</h2>
+      <ul id="expense-list"></ul>
+    </section>
+
+    <section id="summary-panel">
+      <h2>Summary</h2>
+      <div id="summary-content"></div>
+    </section>
+  </div>
+
+  <section id="form-section">
+    <h2>Add Expense</h2>
+    <form id="add-form">
+      <div>
+        <label>Category <input type="text"   id="category-input" /></label>
+        <span id="category-error"></span>
+      </div>
+      <div>
+        <label>Amount   <input type="number" id="amount-input" step="0.01" /></label>
+        <span id="amount-error"></span>
+      </div>
+      <div>
+        <label>Date     <input type="date"   id="date-input" /></label>
+        <span id="date-error"></span>
+      </div>
+      <div id="form-api-error"></div>
+      <button type="submit">Add Expense</button>
+    </form>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
