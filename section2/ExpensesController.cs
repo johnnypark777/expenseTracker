@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 
 public record TotalReport(
-    object totals,
-    string grandTotal
+    Dictionary<string, decimal> totals,
+    decimal grandTotal
 );
 
 [ApiController]
@@ -24,9 +24,9 @@ public class ExpensesController : ControllerBase
         List<Expense> matchingExpenses = expenses.FindAll(expense =>
         {
             return expense.UserId == userId
-            && expense.Category == category
-            && expense.Date.CompareTo(startDate) > 0
-            && expense.Date.CompareTo(endDate) < 0;
+            && (category == null || expense.Category == category)
+            && (startDate == null || expense.Date.CompareTo(startDate) >= 0)
+            && (endDate == null || expense.Date.CompareTo(endDate) <= 0);
         });
         matchingExpenses.Sort(delegate (Expense expenseA, Expense expenseB)
         {
@@ -49,7 +49,7 @@ public class ExpensesController : ControllerBase
             return BadRequest("Category not found");
         }
 
-        if (newExpense.Amount > 0)
+        if (newExpense.Amount < 0)
         {
             return BadRequest("Invalid value for Amount. Amount has to be greater than 0. Amount: " + newExpense.Amount);
         } 
@@ -75,7 +75,7 @@ public class ExpensesController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/summary")]
+    [Route("summary")]
     public IActionResult CreateSummary([FromQuery] string? userId) 
     {
         if(userId == null)
@@ -84,17 +84,18 @@ public class ExpensesController : ControllerBase
         }
 
         List<Expense> expenses = DataStore.Expenses;
-        // TODO: Find out syntax to create dictionary
-        
-        object totals = 0;
+
+        Dictionary<string, decimal> totals = [];
         decimal grandTotal = 0;
-        
+
         List<Expense> matchingExpenses = expenses.FindAll(expense => expense.UserId == userId);
         matchingExpenses.ForEach(expense =>
         {
+            totals.TryGetValue(expense.Category, out decimal categoryAmount);
+            totals[expense.Category] = categoryAmount + expense.Amount;
             grandTotal += expense.Amount;
         });
-        TotalReport report = new(totals, grandTotal.ToString());
+        TotalReport report = new(totals, grandTotal);
         return Ok(report);
     }
 

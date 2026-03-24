@@ -71,9 +71,19 @@ const expenseTracker = {
 
   renderCategories(data) {
     const categoryOptions = document.getElementById('category-filter');
+    const selectedOption = categoryOptions.value;
+
+    categoryOptions.innerHTML = '<option value="">All Categories</option>';
+    
+    const existingCategories = new Set();
     data.forEach((expense) => {
-      categoryOptions.innerHTML += `<option value=${expense.category}>${expense.category}</option>`;
+      if (!existingCategories.has(expense.category)) {
+        existingCategories.add(expense.category);
+        categoryOptions.innerHTML += `<option value=${expense.category}>${expense.category}</option>`;
+      }
     });
+    
+    categoryOptions.value = selectedOption;
   },
 
   async loadExpenses() {
@@ -88,17 +98,17 @@ const expenseTracker = {
     try {
       const response = api.getExpenses(this.userId, { category, startDate, endDate });
       status.innerHTML = `<p> Loading... </p>`;
-      await response;
-      data = await response.json();
+      data = await response;
       this.cachedExpenses = data;
     } catch {
-      
       status.innerHTML = `<p> Failed to get expenses. Please retry. </p>`;
-      status.innerHTML += `<Button commandFor="retry" command="retryClicked" value=clicked>`
-      document.getElementById('retry').addEventListener('retryClicked', async () => {
+      
+      status.innerHTML += `<button id="retry-btn">Retry</button>`
+      document.getElementById('retry-btn').addEventListener('click', async () => {
         await this.loadExpenses();
       });
-    
+      
+      return;
     }
 
     status.innerHTML = '';
@@ -110,35 +120,42 @@ const expenseTracker = {
   async addExpense() {
     const category = document.getElementById('category-input').value;
     const amount = document.getElementById('amount-input').value;
-    const date = document.getElementById('date-input').value;
+    const date = document.getElementById('date-input');
 
     const categoryError = document.getElementById('category-error');
     const amountError = document.getElementById('amount-error');
     const dateError = document.getElementById('date-error');
     const formApiError = document.getElementById('form-api-error');
 
-    if (category == null) {
-      categoryError.innerHTML = '<p>Invalid category value</p>';
-      return;
+    categoryError.innerHTML = '';
+    amountError.innerHTML = '';
+    dateError.innerHTML = '';
+
+    let validationFailed = false;
+    if (category == null || category == '') {
+      categoryError.innerHTML = '<p>Invalid category value.</p>';
+      validationFailed = true;
     }
     
     if (amount <= 0) {
       amountError.innerHTML = '<p>Invalid amount value. Please input a positive number</p>';
-      return;
+      validationFailed = true;
     } 
     
-    if (date.valueAsNumber > Date.now()) {
-      dateError.innerHTML = '<p>Invalid date value. Please input a date earlier than what is current time</p>';
-      return;
+    if (date.value == '' || date.valueAsNumber > Date.now()) {
+      dateError.innerHTML = '<p>Invalid date value. Please input a date earlier than today</p>';
+      validationFailed = true;
     }
+
+    if (validationFailed === true) return;
+
     categoryError.innerHTML = '';
     amountError.innerHTML = '';
     dateError.innerHTML = '';
 
     let newExpense;
     try {
-      const response = await api.createExpense({ userId: this.userId, category, amount, date });
-      newExpense = await response.json();
+      newExpense = await api.createExpense({ userId: this.userId, category, amount: parseFloat(amount), date: date.value });
     } catch (err) {
       formApiError.innerHTML = `<p> Error occurred while submitting form. Error: ${JSON.stringify(err.message ?? err)}</p>`;
       return;
@@ -155,12 +172,15 @@ const expenseTracker = {
 
   async loadSummary() {
     const response = await api.getSummary(this.userId);
-    const data = await response.json();
     const container = document.getElementById('summary-content');
     container.innerHTML = '';
-    Object.entries(data.totals).forEach(([cat, total]) => {
+    Object.entries(response.totals).forEach(([cat, total]) => {
       container.innerHTML += `<p>${cat}: $${total.toFixed(2)}</p>`;
     });
-    container.innerHTML += `<strong>Total: $${data.grandTotal.toFixed(2)}</strong>`;
+    container.innerHTML += `<strong>Total: $${response.grandTotal.toFixed(2)}</strong>`;
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  expenseTracker.init('user-1');
+});
