@@ -9,9 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "D:\\src\\expenseTracker\\section2\\backend/bin/Debug/net8.0/backend.dll",
+            "program": "D:\\src\\expenseTracker\\section2/bin/Debug/net8.0/backend.dll",
             "args": [],
-            "cwd": "D:\\src\\expenseTracker\\section2\\backend",
+            "cwd": "D:\\src\\expenseTracker\\section2",
             "stopAtEntry": false,
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"

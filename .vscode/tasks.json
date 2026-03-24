@@ -5,7 +5,7 @@
             "label": "build",
             "command": "dotnet",
             "type": "process",
-            "args": ["build", "D:\\src\\expenseTracker\\section2\\backend"],
+            "args": ["build", "D:\\src\\expenseTracker\\section2"],
             "problemMatcher": "$msCompile"
         }
     ]
